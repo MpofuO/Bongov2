@@ -17,7 +17,7 @@
                     string value, displayText;
                     if (selected != null)
                     {
-                        value = selected.sessionInPDFValue.Replace("selectedGroup", "");
+                        value = selected.sessionInPDFValue.Replace("selectedGroup", "").Replace("ignored", "");
                         displayText = value;
                         groupList.Add(new SelectListItem { Value = value, Text = displayText, Selected = true });
                         lect.sessions.Remove(selected);
@@ -25,25 +25,33 @@
                     groupList.AddRange((lect.sessions.
                     Select(s => new SelectListItem
                     {
-                        Value = s.sessionInPDFValue,
-                        Text = s.sessionInPDFValue.Replace("disabled", ""),
+                        Value = s.sessionInPDFValue.Replace("ignored", ""),
+                        Text = s.sessionInPDFValue.Replace("disabled", "").Replace("ignored", ""),
                         Disabled = Model.CheckDisabled(s.sessionInPDFValue)
                     })));
 
 
                     <div class="form-group">
                         <label class="mb-2 fw-bold">@lect.ModuleCode</label>, <label>@lect.LectureDesc.ToLower()</label>
-                        @Html.DropDownList("Sessions", groupList, "--- select a class ---", new { @class = "form-select mb-2", @required = "required" })
+                        @Html.DropDownList("Sessions", groupList, new { @class = "form-select mb-2", @required = "required" })
                         @if (Extensions.HasGroups(lect.sessions))
                         {
-                           <div class="form-check mb-4">
-                               <input class="form-check-input" type="checkbox" name="SameGroups" 
-                               value="@lect.ModuleCode @lect.LectureDesc" />
-                               <label class="form-check-label">
-                                   Select all sessions of the same group
-                               </label>
-                           </div>
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" name="SameGroups"
+                                       value="@lect.ModuleCode @lect.LectureDesc" />
+                                <label class="form-check-label">
+                                    Select all sessions of the same group
+                                </label>
+                            </div>
                         }
+                        <div class="form-check mb-4 d-flex justify-content-end pe-1">
+                            <input class="form-check-input pe-3" type="checkbox" name="Ignore"
+                                   value="@(selected != null?selected.sessionInPDFValue.Replace("selectedGroup", "")
+                                   .Replace("ignored", ""):lect.sessions[0].sessionInPDFValue.Replace("ignored", ""))" />
+                            <label class="form-check-label">
+                                Ignore
+                            </label>
+                        </div>
                     </div>
                 }
                 <div class="d-flex session-prep-buttons">

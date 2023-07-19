@@ -107,6 +107,16 @@ namespace Bongo.Controllers
             }
 
             RemoveSelectedWhereNecessary("group");
+            RemoveSelectedWhereNecessary("ignored");
+
+            if (model.Ignore != null)
+                foreach (string s in model.Ignore)
+                {
+                    table.TimetableText = table.TimetableText.Replace(s, s + "ignored");
+                    List<string> list = model.Sessions.ToList();
+                    list.Remove(s);
+                    model.Sessions = list.ToArray();
+                }
 
             foreach (string session in model.Sessions)
             {
@@ -115,7 +125,7 @@ namespace Bongo.Controllers
                     Lecture sessionLecture = grouped.FirstOrDefault(lect => lect.sessions.Select(s => s.sessionInPDFValue).Contains(session));
                     if (model.SameGroups != null && model.SameGroups.Contains($"{sessionLecture.ModuleCode} {sessionLecture.LectureDesc}"))
                     {
-                        Regex groupPattern = new Regex(@"Group [A-Z]{1,2}");
+                        Regex groupPattern = new Regex(@"Group [A-Z]+[\d]");
                         foreach (Session s in sessionLecture.sessions)
                             if (groupPattern.Match(s.sessionInPDFValue).Success)
                                 table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue + "selectedGroup");
@@ -180,7 +190,7 @@ namespace Bongo.Controllers
             firstSemester = Request.Cookies["isForFirstSemester"] == "true";
             Initialise(firstSemester);
             TempData["isForFirstSemester"] = firstSemester;
-            return View("Groups", new GroupsViewModel { GroupedLectures = timetableGetter.GetGroups(true) });
+            return View("Groups", new GroupsViewModel { GroupedLectures = timetableGetter.GetGroups(true, true) });
         }
         public IActionResult TimeTableFileUpload()
         {
@@ -454,11 +464,20 @@ namespace Bongo.Controllers
         {
             if (type.ToLower() == "class")
             {
-                table.TimetableText = table.TimetableText.Replace("selectedClass", "");
+                List<List<Session>> clashes = timetableGetter.GetClashes(true);
+                foreach (List<Session> list in clashes)
+                    foreach (Session s in list)
+                        table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue.Replace("selectedClass", ""));
             }
             else
             {
-                table.TimetableText = table.TimetableText.Replace("selectedGroup", "");
+                List<Lecture> groups = timetableGetter.GetGroups(true, true);
+                foreach (Lecture lect in groups)
+                    foreach (Session s in lect.sessions)
+                        if (type.ToLower() == "group")
+                            table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue.Replace("selectedGroup", ""));
+                        else
+                            table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue.Replace("ignored", ""));
             }
         }
         private void AddNewSession(AddSessionViewModel model)

@@ -33,13 +33,21 @@ namespace Bongo.Infrastructure
             }
             return timetableArray;
         }
-        public List<Lecture> GetGroups(bool ignoreChosen = false)
+        public List<Lecture> GetGroups(bool ignoreChosen = false, bool ignoreIgnored = false)
         {
             List<Lecture> GroupedLectures = new();
             for (int i = 0; i < groupedLectures.Count; i++)
             {
                 GroupedLectures.Add(groupedLectures[i]);
             }
+
+            if(!ignoreIgnored)
+                foreach (Lecture lect in groupedLectures)
+                    foreach (Session s in lect.sessions)
+                        if (s.sessionInPDFValue.Contains("ignored"))
+                        {
+                            GroupedLectures.Remove(lect);
+                        }
 
             if (!ignoreChosen)
                 foreach (Lecture lect in groupedLectures)

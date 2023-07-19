@@ -1,5 +1,4 @@
-﻿
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Bongo.Data;
 using Bongo.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -70,7 +69,7 @@ namespace Bongo.Infrastructure
 
         public static bool HasGroups(List<Session> sessions)
         {
-            Regex groupPattern = new Regex(@"Group [A-Z]{1,2}");
+            Regex groupPattern = new Regex(@"Group [A-Z]+[\d]");
             List<string> groups = new List<string>();
             foreach (var session in sessions)
             {
