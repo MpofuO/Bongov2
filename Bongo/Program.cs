@@ -43,5 +43,6 @@ app.MapControllerRoute(
 
 SeedData.EnsurePopulated(app);
 SeedData.EnsureIdentityPopulated(app);
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(app.Configuration.GetValue<string>("SyncfusionKey:Key"));
 
 app.Run();

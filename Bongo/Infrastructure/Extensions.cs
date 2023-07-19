@@ -1,5 +1,4 @@
-﻿using iTextSharp.text.pdf;
-using iTextSharp.text;
+﻿
 using System.Text.RegularExpressions;
 using Bongo.Data;
 using Bongo.Models;
@@ -58,7 +57,7 @@ namespace Bongo.Infrastructure
             List<string> moduleCodes;
             List<Lecture> lects;//for Conrtol
             new TimetableMaker().Create(text, out lects, out moduleCodes);
-            foreach(string moduleCode in moduleCodes)
+            foreach (string moduleCode in moduleCodes)
             {
                 _repo.ModuleColor.Update(new ModuleColor
                 {
@@ -86,22 +85,4 @@ namespace Bongo.Infrastructure
 
     }
 
-    public class PdfBackgroundEvent : PdfPageEventHelper
-    {
-        private readonly BaseColor _backgroundColor;
-
-        public PdfBackgroundEvent(BaseColor backgroundColor)
-        {
-            _backgroundColor = backgroundColor;
-        }
-
-        public override void OnEndPage(PdfWriter writer, Document document)
-        {
-            PdfContentByte canvas = writer.DirectContentUnder;
-            Rectangle rect = document.PageSize;
-            canvas.SetColorFill(_backgroundColor);
-            canvas.Rectangle(rect.Left, rect.Bottom, rect.Width, rect.Height);
-            canvas.Fill();
-        }
-    }
 }

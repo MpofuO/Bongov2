@@ -75,13 +75,13 @@
               "target": "Package",
               "version": "[7.0.7, )"
             },
+            "Syncfusion.Pdf.Net.Core": {
+              "target": "Package",
+              "version": "[22.1.39, )"
+            },
             "System.Net.Http": {
               "target": "Package",
               "version": "[4.3.4, )"
-            },
-            "iTextSharp": {
-              "target": "Package",
-              "version": "[5.5.13.3, )"
             }
           },
           "imports": [

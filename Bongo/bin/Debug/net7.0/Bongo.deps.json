@@ -15,6 +15,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "7.0.8",
           "Microsoft.EntityFrameworkCore.Tools": "7.0.8",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "7.0.7",
+          "Syncfusion.Pdf.Net.Core": "22.1.39",
           "System.Net.Http": "4.3.4",
           "iTextSharp": "5.5.13.3"
         },
@@ -1853,6 +1854,35 @@
       "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
       "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
       "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
+      "Syncfusion.Compression.Net.Core/22.1.39": {
+        "runtime": {
+          "lib/net7.0/Syncfusion.Compression.Portable.dll": {
+            "assemblyVersion": "22.1.39.0",
+            "fileVersion": "22.1.39.0"
+          }
+        }
+      },
+      "Syncfusion.Licensing/22.1.39": {
+        "runtime": {
+          "lib/net7.0/Syncfusion.Licensing.dll": {
+            "assemblyVersion": "22.1.39.0",
+            "fileVersion": "22.1.39.0"
+          }
+        }
+      },
+      "Syncfusion.Pdf.Net.Core/22.1.39": {
+        "dependencies": {
+          "Syncfusion.Compression.Net.Core": "22.1.39",
+          "Syncfusion.Licensing": "22.1.39",
+          "System.Text.Encoding.CodePages": "7.0.0"
+        },
+        "runtime": {
+          "lib/net7.0/Syncfusion.Pdf.Portable.dll": {
+            "assemblyVersion": "22.1.39.0",
+            "fileVersion": "22.1.39.0"
+          }
+        }
+      },
       "System.AppContext/4.3.0": {
         "dependencies": {
           "System.Runtime": "4.3.0"
@@ -3691,6 +3721,27 @@
       "sha512": "sha512-leXiwfiIkW7Gmn7cgnNcdtNAU70SjmKW3jxGj1iKHOvdn0zRWsgv/l2OJUO5zdGdiv2VRFnAsxxhDgMzofPdWg==",
       "path": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl/4.3.2",
       "hashPath": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512"
+    },
+    "Syncfusion.Compression.Net.Core/22.1.39": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/WkuQATlZecePoDjVPoVwNDscr24mBspWCUT4rTjssmnm5hQKH399QzPbJ+sFHOEoJgJ9HoCBQ/75I/GqynrrA==",
+      "path": "syncfusion.compression.net.core/22.1.39",
+      "hashPath": "syncfusion.compression.net.core.22.1.39.nupkg.sha512"
+    },
+    "Syncfusion.Licensing/22.1.39": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-M78hnjmYShEJA/G+ZA3taaUCrO+Q23/gb5Yg4OWo1EV/CPF2VBRhhVpJrZdwVYf3llQ7g5fTCcl0lUWf0ivMbw==",
+      "path": "syncfusion.licensing/22.1.39",
+      "hashPath": "syncfusion.licensing.22.1.39.nupkg.sha512"
+    },
+    "Syncfusion.Pdf.Net.Core/22.1.39": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MQ0sIcIvegK3ZLST8h/14fXS/gzIIqYvhu6xb7l5heXb4SHIDOSGctq35dMXYGV9B4ZyIc4hagJRNuQNYF6wqg==",
+      "path": "syncfusion.pdf.net.core/22.1.39",
+      "hashPath": "syncfusion.pdf.net.core.22.1.39.nupkg.sha512"
     },
     "System.AppContext/4.3.0": {
       "type": "package",

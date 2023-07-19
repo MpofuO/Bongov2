@@ -3,10 +3,13 @@ using Bongo.Infrastructure;
 using Bongo.Models;
 using Bongo.Models.ViewModels;
 using Bongo.Services;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Syncfusion.Pdf.Graphics;
+using Syncfusion.Pdf.Grid;
+using Syncfusion.Pdf;
+using Syncfusion.Drawing;
+
 namespace Bongo.Controllers
 {
     [Authorize]
@@ -54,7 +57,7 @@ namespace Bongo.Controllers
                 Sessions = data is not null ? data : new Session[5, 16],
             });
         }
-        public IActionResult GeneratePdf()
+        public ActionResult GeneratePdf()
         {
             CookieOptions cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(12) };
 
@@ -65,166 +68,166 @@ namespace Bongo.Controllers
             List<Lecture> GroupedList;
             #endregion
 
-
             Timetable table_ = _repo.Timetable.GetUserTimetable(User.Identity.Name);
 
             if (table_ == null)
-                RedirectToAction("TimetableFileUpload", "Session");
+                return RedirectToAction("TimeTableFileUpload", "Session");
 
             GetTimeTable timetableGetter = new GetTimeTable(table_.TimetableText, Request.Cookies["isForFirstSemester"] == "true");
             Session[,] data = timetableGetter.Get(out ClashesList, out GroupedList);
-
-
-
             Session[,] Model = data;
-            Document document = new Document();
-            MemoryStream memoryStream = new MemoryStream();
-            PdfWriter writer = PdfWriter.GetInstance(document, memoryStream);
-            document.Open();
 
-
-            // writer.PageEvent = new PdfBackgroundEvent(BaseColor.LIGHT_GRAY);
-
-
-            // Create a table
-            PdfPTable table = new PdfPTable(6); // Adjust the number of columns as per your table
-
-            // Set table properties
-            table.WidthPercentage = 100;
-            table.SpacingBefore = 10f;
-            table.SpacingAfter = 10f;
-
-            // Set table header cell style
-            PdfPCell headerCell = new PdfPCell();
-            headerCell.BackgroundColor = BaseColor.LIGHT_GRAY;
-            headerCell.HorizontalAlignment = Element.ALIGN_CENTER;
-            headerCell.Padding = 5;
-            headerCell.BorderWidth = 0;
-            headerCell.HorizontalAlignment = Element.ALIGN_CENTER;
-            headerCell.VerticalAlignment = Element.ALIGN_CENTER;
-            // Add table headers
-            table.AddCell(new PdfPCell(new Phrase("Time", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Monday", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Tuesday", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Wednesday", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Thursday", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Friday", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_CENTER, PaddingBottom = 5 });
-
-            // Set table cell style
-            PdfPCell cell = new PdfPCell();
-            cell.Padding = 0;
-            cell.BorderWidth = 0;
-
-            //Handle Rowspan 
-            List<List<int>> lstCells = new List<List<int>>();
-            IndexViewModel model = new IndexViewModel { Sessions = Model };
-            for (int i = 0; i < model.latestPeriod; i++)
+            // Create a PDF document
+            using (PdfDocument document = new PdfDocument())
             {
-                lstCells.Add(new List<int>());
-            }
+                PdfPage page = document.Pages.Add();
 
-            // Add table rows
-            for (int i = 0; i < model.latestPeriod; i++)
-            {
-                table.AddCell(new PdfPCell(new Phrase(GetTime(i), new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLUE))) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
-                for (int j = 0; j < 5; j++)
+                PdfGraphics graphics = page.Graphics;
+
+                RectangleF bounds = new RectangleF(0, 0, document.Pages[0].GetClientSize().Width, 50);
+                PdfPageTemplateElement header = new PdfPageTemplateElement(bounds);
+                header.Graphics.DrawString("B o n g o", new PdfStandardFont(PdfFontFamily.Helvetica, 22, PdfFontStyle.Bold), PdfBrushes.Blue, bounds);
+
+                document.Template.Top = header;
+
+                PdfLayoutFormat format = new PdfLayoutFormat()
                 {
-                    // Get the session and set the cell content
-                    Session session = Model[j, i];
-                    PdfPCell sessionCell = new PdfPCell();
-                    if (session != null)
-                    {
-                        int row = Extensions.GetInterval(session.sessionInPDFValue);
+                    Layout = PdfLayoutType.Paginate,
+                    Break = PdfLayoutBreakType.FitPage
+                };
 
-                        if (row > 1)
-                        {
-                            for (int k = 0; k < row - 1; k++)
-                            {
-                                lstCells[i + k].Add(j);
-                            }
-                        }
-                        if (i > 0 && lstCells[i - 1].Contains(j))
-                        {
+                PdfGrid pdfGrid = new PdfGrid();
+                pdfGrid.Columns.Add(6);
+                pdfGrid.Headers.Add(1);
 
-                            continue;
-                        }
 
-                        sessionCell.BackgroundColor = GetSessionColor(session);
-                        BaseColor FontColor = sessionCell.BackgroundColor.RGB == BaseColor.WHITE.RGB ? BaseColor.BLACK : BaseColor.WHITE;
-                        sessionCell.AddElement(new Paragraph(session.ModuleCode, new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, FontColor)));
-                        sessionCell.AddElement(new Paragraph(session.Venue, new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL, FontColor)));
-                        sessionCell.HorizontalAlignment = Element.ALIGN_CENTER;
-                        sessionCell.VerticalAlignment = Element.ALIGN_MIDDLE;
-                        sessionCell.Rowspan = row;
-                        sessionCell.FixedHeight = 50f;
-                        sessionCell.BorderWidth = 1f;
-                        sessionCell.Padding = 10f;
+                PdfStringFormat pdfStringFormat = new PdfStringFormat()
+                {
+                    Alignment = PdfTextAlignment.Center,
+                    LineAlignment = PdfVerticalAlignment.Middle
+                };
 
-                        // Add the cell to the table
-                        table.AddCell(sessionCell);
-                    }
-                    else
-                    {
-                        if (i > 0 && lstCells[i - 1].Contains(j))
-                        {
-                            continue;
-                        }
+                PdfGridCellStyle pdfGridCellStyle = new PdfGridCellStyle()
+                {
+                    Font = new PdfStandardFont(PdfFontFamily.Helvetica, 8, PdfFontStyle.Regular),
+                    CellPadding = new PdfPaddings(2f, 2f, 2f, 2f),
 
-                        //sessionCell.AddElement(new Paragraph(session.ModuleCode, new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE)));
-                        sessionCell.FixedHeight = 50f;
-                        // Add an empty cell
-                        table.AddCell(new PdfPCell(new Phrase("Bongoxrxrexerxexexerxre", new Font(Font.FontFamily.HELVETICA, 16, Font.NORMAL, BaseColor.WHITE))) { BackgroundColor = BaseColor.WHITE, HorizontalAlignment = Element.ALIGN_CENTER });
-                        // table.AddCell(new PdfPCell(new Phrase(GetTime(i), new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.WHITE))) { BackgroundColor = BaseColor.WHITE });
-                    }
+                };
+
+
+
+                //Headers 
+                PdfGridRow pdfGridHeader = pdfGrid.Headers[0];
+                pdfGridHeader.Cells[0].Value = "Time";
+                pdfGridHeader.Cells[1].Value = "Monday";
+                pdfGridHeader.Cells[2].Value = "Tuesday";
+                pdfGridHeader.Cells[3].Value = "Wednesday";
+                pdfGridHeader.Cells[4].Value = "Thursday";
+                pdfGridHeader.Cells[5].Value = "Friday";
+
+                PdfFont headerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
+
+                pdfGridHeader.Style = new PdfGridRowStyle { Font = headerFont };
+
+                //Rows
+
+                pdfGrid.Columns[0].Width = 40f;
+                //Handle Rowspan 
+                List<List<int>> lstCells = new List<List<int>>();
+                for (int i = 0; i < 14; i++)
+                {
+                    lstCells.Add(new List<int>());
                 }
+
+                // Add table rows
+                for (int i = 0; i < 14; i++)
+                {
+
+                    PdfGridRow pdfGridRow = pdfGrid.Rows.Add();
+                    pdfGridRow.Cells[0].Value = GetTime(i);
+                    pdfGridRow.Cells[0].Style = new PdfGridCellStyle { Font = headerFont };
+                    pdfGridRow.Height = 40f;
+                    for (int j = 0; j < 5; j++)
+                    {
+
+                        Session session = Model[j, i];
+                        if (session != null)
+                        {
+                            int row = Extensions.GetInterval(session.sessionInPDFValue);
+
+                            if (row > 1)
+                            {
+                                for (int k = 0; k < row - 1; k++)
+                                {
+                                    lstCells[i + k].Add(j);
+                                }
+                            }
+                            if (i > 0 && lstCells[i - 1].Contains(j))
+                            {
+                                continue;
+                            }
+
+                            pdfGridRow.Cells[j + 1].Value = $"{String.Format(session.ModuleCode.ToUpper())}\n{session.Venue}";
+                            pdfGridRow.Cells[j + 1].RowSpan = row;
+                            pdfGridRow.Cells[j + 1].Style = pdfGridCellStyle;
+                            var c = _repo.ModuleColor.GetModuleColorWithColorDetails(User.Identity.Name, session.ModuleCode).Color.ColorValue;
+                            Syncfusion.Drawing.Color color = ColorTranslator.FromHtml(c);
+                            pdfGridRow.Cells[j + 1].Style = new PdfGridCellStyle { BackgroundBrush = new PdfSolidBrush(new PdfColor(color)), TextBrush = new PdfSolidBrush(new PdfColor(255, 255, 255)) };
+                        }
+                        else
+                        {
+                            if (i > 0 && lstCells[i - 1].Contains(j))
+                            {
+                                continue;
+                            }
+                            pdfGridRow.Cells[j + 1].Value = "";
+                        }
+                    }
+
+                }
+
+                for (int x = 1; x < pdfGrid.Columns.Count; x++)
+                {
+                    pdfGrid.Columns[x - 1].Format = pdfStringFormat;
+                    pdfGrid.Columns[x].Width = 90f;
+                }
+                pdfGrid.Columns[pdfGrid.Columns.Count - 1].Format = pdfStringFormat;
+
+
+
+                pdfGrid.Draw(page, new RectangleF(0, 50, page.GetClientSize().Width, page.GetClientSize().Height), format);
+
+                PdfPageTemplateElement footer = new PdfPageTemplateElement(bounds);
+
+                footer.Graphics.DrawString("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tBongo v1 | \u00A9 " + DateTime.Now.Year,
+                    new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.LightGray, bounds);
+
+                document.Template.Bottom = footer;
+
+                MemoryStream memoryStream = new MemoryStream();
+                document.Save(memoryStream);
+                memoryStream.Position = 0;
+
+
+                return File(memoryStream.ToArray(), "application/pdf", "timetable.pdf");
             }
-
-            // Add the table to the document
-            document.Add(table);
-
-            document.Close();
-
-            // Set the response headers
-            Response.Headers.Add("Content-Disposition", "inline;filename=table.pdf");
-            Response.Headers.Add("Content-Type", "application/pdf");
-
-            // Return the PDF file
-            return File(memoryStream.ToArray(), "application/pdf");
         }
+
+        private PdfFont GetFont()
+        {
+            // Specify the font settings
+            PdfFont font = new PdfStandardFont(PdfFontFamily.Helvetica, 12f, PdfFontStyle.Regular);
+
+            // Set the text color
+            return font;
+        }
+
 
         private string GetTime(int index)
         {
             int hour = index + 7;
             return hour.ToString("D2") + ":00";
         }
-
-        private BaseColor GetSessionColor(Session session)
-        {
-            var moduleColor = _repo.ModuleColor.GetModuleColorWithColorDetails(User.Identity.Name, session.ModuleCode);
-
-
-            var color = Aspose.Svg.Drawing.Color.FromString(moduleColor.Color.ColorValue.ToString());
-            var co = color.ToRgbaString();
-            int r = (int)Math.Round((double)color.Red * 255);
-            int g = (int)Math.Round((double)color.Green * 255);
-            int b = (int)Math.Round((double)color.Blue * 255);
-            return new BaseColor(r, g, b);
-
-        }
-
-        private static BaseColor HexToBaseColor(string hexColor)
-        {
-            int red = int.Parse(hexColor.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
-            int green = int.Parse(hexColor.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-            int blue = int.Parse(hexColor.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-
-
-
-            return new BaseColor(red, green, blue);
-        }
-
-
-
 
         [HttpPost]
         public IActionResult UpdateCookie(string key, string value)
