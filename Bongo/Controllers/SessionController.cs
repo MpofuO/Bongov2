@@ -154,7 +154,8 @@ namespace Bongo.Controllers
                 if (nextModule.Success)
                 {
                     int nextModuleIndex = moduleIndex + nextModule.Index;
-                    table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex, nextModuleIndex - moduleIndex), "");
+                    string whole = table.TimetableText.Substring(moduleIndex, nextModuleIndex - moduleIndex);
+                    table.TimetableText.Replace(whole, "");
                 }
                 else
                     table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), "");
