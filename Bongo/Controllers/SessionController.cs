@@ -1,0 +1,485 @@
+﻿using Bongo.Data;
+using Bongo.Infrastructure;
+using Bongo.Models;
+using Bongo.Models.ViewModels;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.RegularExpressions;
+
+namespace Bongo.Controllers
+{
+    [Authorize]
+    public class SessionController : Controller
+    {
+        private IRepositoryWrapper _repository;
+        private static Timetable table;
+        private List<List<Session>> ClashesList;
+        private List<Lecture> GroupedList;
+        private List<Module> Modules;
+        private static bool firstSemester;
+        private static GetTimeTable timetableGetter;
+        private static Session[,] data;
+
+        public SessionController(IRepositoryWrapper repository)
+        {
+            _repository = repository;
+        }
+
+        private void Initialise(bool isForFirstSemester)
+        {
+            firstSemester = isForFirstSemester;
+            table = _repository.Timetable.GetUserTimetable(User.Identity.Name);
+            timetableGetter = new GetTimeTable(table.TimetableText, isForFirstSemester);
+            data = timetableGetter.Get(out ClashesList, out GroupedList);
+        }
+
+        public IActionResult Index()
+        {
+            bool isForFirstSemester = Request.Cookies["isForFirstSemester"] == "true";
+            Initialise(isForFirstSemester);
+            MarkDisabled();
+
+            if (ClashesList.Count > 0)
+                return View("Clashes", ClashesList);
+            if (GroupedList.Count > 0)
+                return View("Groups", new GroupsViewModel { GroupedLectures = GroupedList });
+
+            TempData["isForFirstSemester"] = isForFirstSemester;
+            return RedirectToAction("Index", "Home", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+        }
+        [HttpPost]
+        public IActionResult Clashes(string[] Sessions)
+        {
+            RemoveSelectedWhereNecessary("class");
+
+            foreach (string session in Sessions)
+            {
+                if (Extensions.ContainsClashes(Sessions))
+                {
+                    ModelState.AddModelError("", "You have selected clashing sessions");
+                    return View(timetableGetter.GetClashes());
+                }
+
+                if (session is not null)
+                {
+                    if (!session.Contains("Tap to handle") || (session.Contains("Tap to handle") && table.TimetableText.Contains(session)))
+                        table.TimetableText = table.TimetableText.
+                            Replace(session, session + "selectedClass");
+                    else
+                    {
+                        Regex timepattern = new Regex(@"[\d]{2}:[\d]{2} [\d]{2}:[\d]{2}");
+                        Regex daypattern = new Regex(@"Monday|Tuesday|Wednesday|Thursday|Friday");
+                        Match timeMatch = timepattern.Match(session);
+                        string startTime = timeMatch.Value.Substring(0, 5);
+                        string endTime = timeMatch.Value.Replace(startTime + " ", "");
+                        int semesterNo = Request.Cookies["isForFirstSemester"] == "true" ? 1 : 2;
+                        AddNewSession(new AddSessionViewModel
+                        {
+                            ModuleCode = $"CCCC12{semesterNo}3",
+                            SessionType = "Lecture",
+                            SessionNumber = 1,
+                            startTime = startTime,
+                            endTime = endTime,
+                            Day = $"{daypattern.Match(session).Value}selectedClass",
+                            Venue = "Tap to handle"
+
+                        });
+                    }
+
+                }
+            }
+
+            UpdateAndSave();
+
+            return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+        }
+        [HttpPost]
+        public IActionResult Groups(GroupsViewModel model)
+        {
+            List<Lecture> grouped = timetableGetter.GetGroups();
+            if (Extensions.ContainsClashes(model.Sessions))
+            {
+                ModelState.AddModelError("", "You have selected clashing sessions");
+                return View(new GroupsViewModel { GroupedLectures = timetableGetter.GetGroups() });
+            }
+
+            RemoveSelectedWhereNecessary("group");
+
+            foreach (string session in model.Sessions)
+            {
+                if (session is not null)
+                {
+                    Lecture sessionLecture = grouped.FirstOrDefault(lect => lect.sessions.Select(s => s.sessionInPDFValue).Contains(session));
+                    if (model.SameGroups != null && model.SameGroups.Contains($"{sessionLecture.ModuleCode} {sessionLecture.LectureDesc}"))
+                    {
+                        Regex groupPattern = new Regex(@"Group [A-Z]{1,2}");
+                        foreach (Session s in sessionLecture.sessions)
+                            if (groupPattern.Match(s.sessionInPDFValue).Success)
+                                table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue + "selectedGroup");
+                    }
+                    else
+                        table.TimetableText = table.TimetableText.Replace(session, session + "selectedGroup");
+                }
+            }
+
+            UpdateAndSave();
+
+            return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+
+        }
+        public IActionResult EditClashes(bool firstSemester, string session = "")
+        {
+            firstSemester = Request.Cookies["isForFirstSemester"] == "true";
+            Initialise(firstSemester);
+            TempData["isForFirstSemester"] = firstSemester;
+            List<List<Session>> clashes = session == "" ? timetableGetter.GetClashes(true) : timetableGetter.GetSpecificClashes(session);
+            return View("Clashes", clashes);
+        }
+        public IActionResult EditGroups(bool firstSemester)
+        {
+            firstSemester = Request.Cookies["isForFirstSemester"] == "true";
+            Initialise(firstSemester);
+            TempData["isForFirstSemester"] = firstSemester;
+            return View("Groups", new GroupsViewModel { GroupedLectures = timetableGetter.GetGroups(true) });
+        }
+        public IActionResult TimeTableFileUpload()
+        {
+            table = _repository.Timetable.GetUserTimetable(User.Identity.Name);
+            if (table != null)
+                return RedirectToAction("Index", new { isForFirstSemester = true });
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult TimeTableFileUpload(IFormFile file, bool isFirstSemester = true)
+        {
+            if (file != null)
+            {
+                if (file.Length < 200000) //revise
+                {
+                    if (file.ContentType == "application/pdf")
+                    {
+                        string text = "";
+                        try
+                        {
+                            using (Stream stream = file.OpenReadStream())
+                            {
+                                //Read the text from a pdf file
+                                using (PdfReader reader = new PdfReader(stream))
+                                {
+                                    int pageCount = reader.NumberOfPages;
+
+                                    for (int i = 1; i <= pageCount; i++)
+                                    {
+                                        text += PdfTextExtractor.GetTextFromPage(reader, i);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+
+                            ModelState.AddModelError("", "Something went wrong while uploading TimeTable. " +
+                                "\n Please make sure your have uploaded the correct file.");
+                            return View();
+                        }
+
+                        //Remove unwanted text
+                        Regex patternTop = new Regex(@"(\d{4}) CLASS TIMETABLE\n(\d{10})");
+                        Match match = patternTop.Match(text);
+                        if (match.Success)
+                        {
+                            Regex pattern = new Regex(@"205 Nelson Mandela Drive  \|  Park West, Bloemfontein 9301 \| South Africa\nP\.O\. Box 339  \|  Bloemfontein 9300  \|  South Africa \| www\.ufs\.ac\.za|\nVenue Start End Day From To|Venue Start End Day From To\n");//|\(Group [A-Z]{1,2}\)|
+                            text = pattern.Replace(text, String.Empty);
+
+                            Timetable newTimetale = new Timetable { TimetableText = text, Username = User.Identity.Name };
+                            _repository.Timetable.Update(newTimetale);
+                            Extensions.AddNewUserModuleColor(ref _repository, User.Identity.Name, newTimetale.TimetableText);
+                            _repository.SaveChanges();
+
+
+                            SetCookie("isForFirstSemester", isFirstSemester.ToString().ToLower());
+
+                            return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+                        }
+                        else
+                            ModelState.AddModelError("", "Something went wrong while uploading TimeTable. " +
+                                "\n Please make sure your have uploaded your personal TimeTable");
+                    }
+                    else
+                        ModelState.AddModelError("", "Only pdf files allowed");
+                }
+                else
+                    ModelState.AddModelError("", "Chosen file is too large");
+            }
+            else
+                ModelState.AddModelError("", "No file was uploaded");
+
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult DeleteSession(string session, bool firstSemester)
+        {
+            if (session != null)
+            {
+                //table.TimetableText.Trim();
+                string[] timeLines = table.TimetableText.Split("\n");
+
+                List<string> rem = new List<string>();
+
+
+                int x = 0;
+                for (int i = 0; i < timeLines.Length; i++)
+                {
+                    if (timeLines[i] == session)
+                    {
+                        x = i; break;
+                    }
+                }
+
+                Regex lecturepattern = new Regex(@"Lecture [0-9]?|Tutorial [0-9]?|Practical [0-9]?");
+                Regex modulepattern = new Regex(@"[A-Z]{4}[\d]{4}");
+
+                for (int i = x; i > 0; i--)
+                {
+                    Match match = lecturepattern.Match(timeLines[i]);
+                    if (match.Success)
+                    {
+                        //timeLines[i] = "";
+                        for (int j = i + 1; j < timeLines.Length; j++)
+                        {
+                            Match matchAfter = lecturepattern.Match(timeLines[j]);
+                            Match matchMod = modulepattern.Match(timeLines[j]);
+                            matchMod.Equals(timeLines[j]);
+                            if ((matchAfter.Success || matchMod.Success) && match.Value != timeLines[j])
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                if (timeLines[j] != "")
+                                {
+                                    table.TimetableText = table.TimetableText.Replace(timeLines[j], "");
+                                    rem.Add(timeLines[j]);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                UpdateAndSave();
+                TempData["Message"] = "Removed successfully";
+            }
+            return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+        }
+
+        [HttpGet]
+        public IActionResult AddSession(string day, string time)
+        {
+            PopulateEndTimeDLL(time);
+            return View(new AddSessionViewModel { Day = day, startTime = time });
+        }
+
+        [HttpPost]
+        public IActionResult AddSession(AddSessionViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AddNewSession(model);
+                UpdateAndSave();
+                return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+            }
+
+            PopulateEndTimeDLL(model.startTime);
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult SessionDetails(string session/*, bool forFirstSemester*/)
+        {
+            if (session != null)
+            {
+                Session _session;
+                bool isB = Request.Cookies["isForFirstSemester"] == "true";
+
+                Initialise(Request.Cookies["isForFirstSemester"] == "true");
+                var arr = data;
+                for (int i = 0; i < arr.GetLength(0); i++)
+                {
+                    for (int j = 0; j < arr.GetLength(1); j++)
+                    {
+                        if (arr[i, j] != null && arr[i, j].sessionInPDFValue == session)
+                        {
+                            _session = arr[i, j];
+
+                            ModuleColor moduleColor = _repository.ModuleColor
+                                .GetModuleColorWithColorDetails(User.Identity.Name, _session.ModuleCode);
+
+                            PopulateColorDLL(moduleColor.ColorId);
+                            return View(new SessionModuleColorViewModel
+                            {
+                                ModuleColor = moduleColor,
+                                Session = _session,
+                                Colors = _repository.Color.FindAll()
+                            });
+                        }
+                    }
+                }
+            }
+            return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+        }
+
+        [HttpPost]
+        public IActionResult UpdateModuleColor(SessionModuleColorsUpdate model)
+        {
+            if (model.ColorId.Count() > 0)
+            {
+                for (int i = 0; i < model.ColorId.Count(); i++)
+                {
+                    Color color = _repository.Color.GetById(model.ColorId[i]);
+                    ModuleColor moduleColor = _repository.ModuleColor.GetById(model.ModuleColorId[i]);
+                    moduleColor.Color = color;
+                    _repository.ModuleColor.Update(moduleColor);
+                }
+                _repository.SaveChanges();
+                TempData["Message"] = "Colors changed successfuly💃🏿";
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult EditColors()
+        {
+            PopulateColorDLL();
+            return View(new ModulesColorsViewModel()
+            {
+                ModuleColors = _repository.ModuleColor.GetByCondition(m => m.Username == User.Identity.Name).Where(m =>
+                 Request.Cookies["isForFirstSemester"] == "true" ? (int.Parse(m.ModuleCode.Substring(6, 1)) == 0 || int.Parse(m.ModuleCode.Substring(6, 1)) % 2 == 1)
+                                : int.Parse(m.ModuleCode.Substring(6, 1)) % 2 == 0),
+                Colors = _repository.Color.FindAll()
+            });
+        }
+
+        [HttpPost]
+        public IActionResult ClearTable()
+        {
+            table = _repository.Timetable.GetUserTimetable(User.Identity.Name);
+            var moduleColor = _repository.ModuleColor.GetByCondition(m => m.Username == User.Identity.Name);
+            if (table != null)
+            {
+                _repository.Timetable.Delete(table);
+
+            }
+            if (moduleColor != null)
+            {
+                foreach (var item in moduleColor)
+                {
+                    _repository.ModuleColor.Delete(item);
+                }
+            }
+            _repository.SaveChanges();
+            return RedirectToAction("TimeTableFileUpload");
+        }
+
+
+        private void PopulateEndTimeDLL(string startTime)
+        {
+            List<SelectListItem> endTimes = new List<SelectListItem>();
+            int start = int.Parse(startTime.Substring(0, 2)) + 1;
+            while (start <= 20)
+            {
+                string value = start < 10 ? $"0{start}:00" : $"{start}:00";
+                endTimes.Add(new SelectListItem { Value = value, Text = value });
+                start++;
+            }
+            ViewBag.endTimes = endTimes;
+        }
+        private void PopulateColorDLL(object selectedColor = null)
+        {
+            ViewBag.Colors = new SelectList(_repository.Color.FindAll()
+                .OrderBy(g => g.ColorName),
+                "ColorId", "ColorName", selectedColor);
+        }
+        private void MarkDisabled()
+        {
+            foreach (Lecture lect in GroupedList)
+            {
+                foreach (Session session in lect.sessions)
+                {
+                    if (data[session.Period[0] - 1, session.Period[1] - 1] != null)
+                        session.sessionInPDFValue += session.sessionInPDFValue.Contains(" disabled") ? "" : " disabled";
+                }
+            }
+        }
+        private void RemoveSelectedWhereNecessary(string type)
+        {
+            if (type.ToLower() == "class")
+            {
+                table.TimetableText = table.TimetableText.Replace("selectedClass", "");
+            }
+            else
+            {
+                table.TimetableText = table.TimetableText.Replace("selectedGroup", "");
+            }
+        }
+        private void AddNewSession(AddSessionViewModel model)
+        {
+            int moduleIndex = table.TimetableText.IndexOf(model.ModuleCode.ToUpper());
+            if (moduleIndex != -1)
+            {
+                int sessionTypeIndex = moduleIndex + table.TimetableText.Substring(moduleIndex).IndexOf($"{model.SessionType} {model.SessionNumber}");
+                if (sessionTypeIndex != moduleIndex - 1)
+                {
+                    string text = table.TimetableText.Substring(moduleIndex, sessionTypeIndex - moduleIndex);
+                    Regex modulepattern = new Regex(@"[A-Z]{4}[\d]{4}|CLASH!![\d]");
+                    Match match = modulepattern.Match(text);
+                    if (!match.Success)
+                    {
+                        table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(sessionTypeIndex),
+                            $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
+                            table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType + model.SessionNumber}".Length + 1) + "\n");
+                    }
+                    else
+                    {
+                        table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{model.ModuleCode.ToUpper()}\n" +
+                        $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
+                        table.TimetableText.Substring(moduleIndex + 8) + "\n");
+                    }
+                }
+                else
+                {
+                    table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{model.ModuleCode.ToUpper()}\n" +
+                        $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
+                        table.TimetableText.Substring(moduleIndex + 8) + "\n");
+                }
+            }
+            else
+            {
+                table.TimetableText = $"{table.TimetableText}{model.ModuleCode.ToUpper()}" +
+                    $"\n{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n";
+                _repository.ModuleColor.Create(new ModuleColor
+                {
+                    ColorId = _repository.Color.GetByName("no-color").ColorId,
+                    Username = User.Identity.Name,
+                    ModuleCode = model.ModuleCode
+
+                });
+            }
+        }
+        private void UpdateAndSave()
+        {
+            _repository.Timetable.Update(table);
+            _repository.SaveChanges();
+        }
+        private void SetCookie(string key, string value)
+        {
+            CookieOptions cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(90) };
+
+            Response.Cookies.Append(key, value == null ? "" : value, cookieOptions);
+        }
+    }
+}

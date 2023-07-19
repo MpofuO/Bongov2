@@ -1,0 +1,30 @@
+﻿@model IFormFile
+
+<div class="session-prep bg-light shadow w-sm-50">
+    <form asp-action="TimeTableFileUpload" method="post" enctype="multipart/form-data">
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+        <div class="mb-5">
+            <h4 for="file">Upload your UFS Personal Timetable to continue</h4>
+            <input class="form-control mt-3 ms-3" type="file" name="file" accept=".pdf" required />
+        </div>
+        <div class="mb-3">
+            <h4>Choose semester</h4>
+            <div class="mt-2 ms-3">
+                <input class="" type="radio" id="Semester1" name="isFirstSemester" value=true checked />
+                <label class="form-label" for="Semester1">Create for Semester 1</label>
+            </div>
+            <div class="ms-3">
+                <input type="radio" id="Semester2" name="isFirstSemester" value=false />
+                <label class="form-label" for="Semester1">Create for Semester 2</label>
+            </div>
+        </div>
+        <a href="#" class="border-1 text-decoration-none text-dark help-btn" style="vertical-align: middle;">
+            <i class="fa-solid fa-info-circle fa-1x me-1 text-primary"></i><span>Help</span>
+        </a>
+        <div class="d-flex session-prep-buttons">
+            <button class="btn btn-primary mx-3" type="submit" title="Continue"><i class=" fa-solid fa-arrow-right"></i></button>
+        </div>
+        
+    </form>
+
+</div>

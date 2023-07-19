@@ -1,0 +1,107 @@
+﻿@model IndexViewModel
+@{
+    ViewData["Title"] = "Home";
+    string semester = ViewBag.isForFirstSemester ? "first" : "second";
+    string activeController = ViewContext.RouteData.Values["controller"].ToString();
+    List<List<int>> lstCells = new List<List<int>>();
+    List<string> Days = new List<string>() { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    for (int i = 0; i < Model.latestPeriod; i++)
+    {
+        lstCells.Add(new List<int>());
+    }
+}
+
+@if (activeController == "Home")
+{
+    <div class="mb-1 toolbar shadow rounded-3">
+        @await Html.PartialAsync("_ToolsNavBarPartial")
+    </div>
+}
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show alert-table" role="alert">
+        <i class="fa-solid fa-check"></i>
+        @TempData["Message"]
+    </div>
+}
+
+<div class="main-table">
+    <table class="table table-striped shadow rounded-4" style="width:700px" id="timeTable">
+        <thead class="table-head table-active">
+            <tr class="text-center text-primary">
+                <th class="">Time</th>
+                <th class="">Monday</th>
+                <th class="">Tuesday</th>
+                <th class="">Wednesday</th>
+                <th class="">Thursday</th>
+                <th class="">Friday</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.latestPeriod; i++)
+            {
+                <tr id="row @i">
+                    <td class="text-center table-active text-primary fw-bold border-bottom">
+                        @{
+                            string hourtime = ((i + 7) > 9 ? (i + 7).ToString() : "0" + (i + 7).ToString());
+                            hourtime += ":00";
+                        }
+                        @hourtime
+                    </td>
+                    @for (int j = 0; j < 5; j++)
+                    {
+                        Session session = Model.Sessions[j, i];
+                        if (session != null)
+                        {
+                            int row = Extensions.GetInterval(session.sessionInPDFValue);
+
+                            if (row > 1)
+                            {
+                                for (int k = 0; k < row - 1; k++)
+                                {
+                                    lstCells[i + k].Add(j);
+                                }
+                            }
+                            if (i > 0 && lstCells[i - 1].Contains(j))
+                            {
+
+                                continue;
+                            }
+
+                            <td class="period-button table-cell" module-color="@session.ModuleCode" module-color-username="@User.Identity.Name"
+                                id="col @j" rowspan="@row">
+                                <span class="fw-bold">@(session.ModuleCode.ToLower().Contains("cccc") ? "CLASH!!" : session.ModuleCode)</span> <br />
+                                <span class="hide-venue" style="display:none; font-size:12px">@session.Venue</span>
+                                <div class="delete-overlay">
+                                    <a class="delete-btn" title="Session Details"
+                           asp-controller="Session" asp-action="@(!session.ModuleCode.ToLower().Contains("cccc") ?"SessionDetails":"EditClashes")" asp-route-session="@session.sessionInPDFValue">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </a>
+
+                                </div>
+                            </td>
+                        }
+                        else
+                        {
+                            if (i > 0 && lstCells[i - 1].Contains(j))
+                            {
+                                continue;
+                            }
+                            <td class="table-cell" id="@j">
+                                <div class="delete-overlay">
+                                    <a asp-action="AddSession" asp-controller="Session" asp-route-day="@Days[j]"
+                           asp-route-time="@hourtime" title="Add Session" class="btn" style="width: 100%; height:100%;">
+                                    </a>
+                                </div>
+                            </td>
+                        }
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+
