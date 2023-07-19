@@ -9,101 +9,101 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Bongo
 build_property.RootNamespace = Bongo
-build_property.ProjectDir = C:\Users\20208\source\repos\Bongov2\Bongo\
+build_property.ProjectDir = C:\Users\20208\source\repos\B2\Bongo\
 build_property.RazorLangVersion = 7.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\20208\source\repos\Bongov2\Bongo
+build_property.MSBuildProjectDirectory = C:\Users\20208\source\repos\B2\Bongo
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/ConfirmEmail.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/ConfirmEmail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDb25maXJtRW1haWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/ForgotPassword.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/Login.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/Register.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/ResetPassword.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXNldFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Account/SignIn.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Account/SignIn.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTaWduSW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Home/Index.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Home/UploadModal.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Home/UploadModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxVcGxvYWRNb2RhbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/LandingPage/Index.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/LandingPage/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1BhZ2VcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/AddSession.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/AddSession.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxBZGRTZXNzaW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/Clashes.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/Clashes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxDbGFzaGVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/EditColors.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/EditColors.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxFZGl0Q29sb3JzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/Groups.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/Groups.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxHcm91cHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/SessionDetails.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/SessionDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxTZXNzaW9uRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Session/TimeTableFileUpload.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Session/TimeTableFileUpload.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2Vzc2lvblxUaW1lVGFibGVGaWxlVXBsb2FkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Shared/_EditSessionModal.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Shared/_EditSessionModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9FZGl0U2Vzc2lvbk1vZGFsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Shared/_LoginLayout.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Shared/_LoginLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb2dpbkxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Shared/_TermsAndPrivacyModal.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Shared/_TermsAndPrivacyModal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9UZXJtc0FuZFByaXZhY3lNb2RhbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Shared/_ToolsNavBarPartial.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Shared/_ToolsNavBarPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Ub29sc05hdkJhclBhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/UserReview/AddReview.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/UserReview/AddReview.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclJldmlld1xBZGRSZXZpZXcuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/_ViewImports.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/_ViewStart.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/20208/source/repos/Bongov2/Bongo/Views/Shared/_Layout.cshtml]
+[C:/Users/20208/source/repos/B2/Bongo/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-ldrwyg7rww

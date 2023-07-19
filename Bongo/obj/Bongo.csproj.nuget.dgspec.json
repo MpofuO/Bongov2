@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\20208\\source\\repos\\Bongov2\\Bongo\\Bongo.csproj": {}
+    "C:\\Users\\20208\\source\\repos\\B2\\Bongo\\Bongo.csproj": {}
   },
   "projects": {
-    "C:\\Users\\20208\\source\\repos\\Bongov2\\Bongo\\Bongo.csproj": {
+    "C:\\Users\\20208\\source\\repos\\B2\\Bongo\\Bongo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\20208\\source\\repos\\Bongov2\\Bongo\\Bongo.csproj",
+        "projectUniqueName": "C:\\Users\\20208\\source\\repos\\B2\\Bongo\\Bongo.csproj",
         "projectName": "Bongo",
-        "projectPath": "C:\\Users\\20208\\source\\repos\\Bongov2\\Bongo\\Bongo.csproj",
+        "projectPath": "C:\\Users\\20208\\source\\repos\\B2\\Bongo\\Bongo.csproj",
         "packagesPath": "C:\\Users\\20208\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\20208\\Source\\Repos\\Bongov2\\Bongo\\obj\\",
+        "outputPath": "C:\\Users\\20208\\source\\repos\\B2\\Bongo\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
