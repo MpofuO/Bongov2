@@ -130,6 +130,42 @@ namespace Bongo.Controllers
             return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
 
         }
+
+        public IActionResult ManageModules()
+        {
+            PopulateColorDLL();
+            return View("EditColors", new ModulesColorsViewModel()
+            {
+                ModuleColors = _repository.ModuleColor.GetByCondition(m => m.Username == User.Identity.Name).Where(m =>
+                 Request.Cookies["isForFirstSemester"] == "true" ? (int.Parse(m.ModuleCode.Substring(6, 1)) == 0 || int.Parse(m.ModuleCode.Substring(6, 1)) % 2 == 1)
+                                : int.Parse(m.ModuleCode.Substring(6, 1)) % 2 == 0),
+                Colors = _repository.Color.FindAll()
+            });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteModule(string ModuleCode)
+         {
+            int moduleIndex = table.TimetableText.IndexOf(ModuleCode);
+            if (moduleIndex != -1)
+            {
+                Regex modPattern = new Regex(@"[A-Z]{4}[\d]{4}");
+                Match nextModule = modPattern.Match(table.TimetableText.Substring(moduleIndex + ModuleCode.Length));
+                if (nextModule.Success)
+                {
+                    int nextModuleIndex = moduleIndex + nextModule.Index;
+                    table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex, nextModuleIndex - moduleIndex), "");
+                }
+                else
+                    table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), "");
+
+                var moduleColor = _repository.ModuleColor.FindAll().FirstOrDefault(mc => mc.Username == User.Identity.Name && mc.ModuleCode == ModuleCode);
+                _repository.ModuleColor.Delete(moduleColor);
+
+                UpdateAndSave();
+            }
+            return RedirectToAction("EditColors");
+        }
         public IActionResult EditClashes(bool firstSemester, string session = "")
         {
             firstSemester = Request.Cookies["isForFirstSemester"] == "true";
@@ -384,8 +420,6 @@ namespace Bongo.Controllers
             _repository.SaveChanges();
             return RedirectToAction("TimeTableFileUpload");
         }
-
-
         private void PopulateEndTimeDLL(string startTime)
         {
             List<SelectListItem> endTimes = new List<SelectListItem>();
