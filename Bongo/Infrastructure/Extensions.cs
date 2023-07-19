@@ -69,7 +69,7 @@ namespace Bongo.Infrastructure
 
         public static bool HasGroups(List<Session> sessions)
         {
-            Regex groupPattern = new Regex(@"Group [A-Z]+[\d]");
+            Regex groupPattern = new Regex(@"Group [A-Z]{1,2}[\d]?");
             List<string> groups = new List<string>();
             foreach (var session in sessions)
             {
