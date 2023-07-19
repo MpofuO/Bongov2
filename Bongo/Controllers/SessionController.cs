@@ -145,7 +145,7 @@ namespace Bongo.Controllers
 
         [HttpPost]
         public IActionResult DeleteModule(string ModuleCode)
-         {
+        {
             int moduleIndex = table.TimetableText.IndexOf(ModuleCode);
             if (moduleIndex != -1)
             {
@@ -155,7 +155,7 @@ namespace Bongo.Controllers
                 {
                     int nextModuleIndex = moduleIndex + nextModule.Index;
                     string whole = table.TimetableText.Substring(moduleIndex, nextModuleIndex - moduleIndex);
-                    table.TimetableText.Replace(whole, "");
+                    table.TimetableText = table.TimetableText.Replace(whole, "");
                 }
                 else
                     table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), "");
