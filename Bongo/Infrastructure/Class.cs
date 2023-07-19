@@ -13,7 +13,7 @@ namespace Bongo.Infrastructure
         private static List<Lecture> groupedLectures;
         private static List<string> ModuleCodes;//for Control
 
-        public GetTimeTable(string text, bool isForFirstSemester) 
+        public GetTimeTable(string text, bool isForFirstSemester)
         {
             timetableArray = new Session[5, 16];
             groupedLectures = new List<Lecture>();
@@ -41,22 +41,25 @@ namespace Bongo.Infrastructure
                 GroupedLectures.Add(groupedLectures[i]);
             }
 
-            if(!ignoreIgnored)
+            List<Lecture> ignoredLectures = new();
+            if (!ignoreIgnored)
                 foreach (Lecture lect in groupedLectures)
                     foreach (Session s in lect.sessions)
                         if (s.sessionInPDFValue.Contains("ignored"))
                         {
                             GroupedLectures.Remove(lect);
+                            ignoredLectures.Add(lect);
                         }
 
             if (!ignoreChosen)
                 foreach (Lecture lect in groupedLectures)
-                    foreach (Session s in lect.sessions)
-                        if (s.sessionInPDFValue.Contains("selectedGroup"))
-                        {
-                            timetableArray[s.Period[0] - 1, s.Period[1] - 1] = s;
-                            GroupedLectures.Remove(lect);
-                        }
+                    if (!ignoredLectures.Contains(lect))
+                        foreach (Session s in lect.sessions)
+                            if (s.sessionInPDFValue.Contains("selectedGroup"))
+                            {
+                                timetableArray[s.Period[0] - 1, s.Period[1] - 1] = s;
+                                GroupedLectures.Remove(lect);
+                            }
 
             return GroupedLectures;
 
