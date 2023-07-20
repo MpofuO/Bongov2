@@ -25,7 +25,7 @@ namespace Bongo.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(int latestPeriod = 0)
         {
 
             if (Request.Cookies["isVenueHidden"] == null)
@@ -55,6 +55,7 @@ namespace Bongo.Controllers
             return View(new IndexViewModel
             {
                 Sessions = data is not null ? data : new Session[5, 16],
+                latestPeriod = latestPeriod
             });
         }
         public ActionResult GeneratePdf()
@@ -211,6 +212,12 @@ namespace Bongo.Controllers
 
                 return File(memoryStream.ToArray(), "application/pdf", "timetable.pdf");
             }
+        }
+
+        [HttpPost]
+        public IActionResult AddRow(int latestPeriod)
+        {
+            return RedirectToAction("Index", new { latestPeriod = latestPeriod });
         }
 
         private PdfFont GetFont()

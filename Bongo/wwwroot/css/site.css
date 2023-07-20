@@ -303,3 +303,16 @@ option[disabled] {
     background: rgb(0,14,255) !important;
     background: linear-gradient(45deg, rgba(0,4,255,0.5158438375350141) 0%, rgba(201,201,201,0.742734593837535) 80%, rgba(255,255,255,0.927608543417367) 100%) !important;
 }
+
+.addRow {
+    position: absolute;
+    bottom: -25px;
+    right: -25px;
+}
+
+.addRowButton {
+    height: 25px !important;
+    width: 25px !important;
+    border-radius: 50%;
+    padding:0 !important;
+}

@@ -96,6 +96,7 @@ namespace Bongo.Controllers
 
             return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
         }
+
         [HttpPost]
         public IActionResult Groups(GroupsViewModel model)
         {
@@ -435,7 +436,7 @@ namespace Bongo.Controllers
         {
             List<SelectListItem> endTimes = new List<SelectListItem>();
             int start = int.Parse(startTime.Substring(0, 2)) + 1;
-            while (start <= 20)
+            while (start <= 22)
             {
                 string value = start < 10 ? $"0{start}:00" : $"{start}:00";
                 endTimes.Add(new SelectListItem { Value = value, Text = value });

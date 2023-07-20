@@ -5,10 +5,16 @@ namespace Bongo.Models.ViewModels
     public class IndexViewModel
     {
         public Session[,] Sessions { get; set; }
+        private int setLatest = 0;
         public int latestPeriod
         {
             get
             {
+                if (setLatest != 0)
+                {
+                    return setLatest;
+                }
+
                 int latest = 7;
                 Regex timepattern = new Regex(@"[\d]{2}:[\d]{2} [\d]{2}:[\d]{2}");
                 foreach (Session session in Sessions)
@@ -22,6 +28,10 @@ namespace Bongo.Models.ViewModels
                     }
                 }
                 return latest - 7;
+            }
+            set
+            {
+                setLatest = value;
             }
         }
     }
