@@ -270,6 +270,15 @@ namespace Bongo.Controllers
         }
 
         [HttpPost]
+        public IActionResult StartBlank()
+        {
+            Timetable newTimetale = new Timetable { TimetableText = "", Username = User.Identity.Name };
+            _repository.Timetable.Update(newTimetale);
+            _repository.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
         public IActionResult DeleteSession(string session, bool firstSemester)
         {
             if (session != null)
