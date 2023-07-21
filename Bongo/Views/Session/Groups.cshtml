@@ -4,9 +4,10 @@
 }
 
 <div class="session-prep bg-light shadow w-sm-50">
+    <h4 class="mb-3">Manage Groups</h4>
     @if (Model.GroupedLectures.Count > 0)
     {
-        <h4 class="mb-4">Please select the class you will attend for each of the following</h4>
+        <h5 class="mb-4">Please select the class you will attend for each of the following</h5>
         <div>
             <input name="GroupedLectures" value="@Model.GroupedLectures" hidden />
             <form asp-action="Groups" method="post">
@@ -63,7 +64,7 @@
     }
     else
     {
-        <h4>You currently do not have Grouped Lectures😊</h4>
+        <h5>You currently do not have Grouped Lectures😊</h5>
         <div class="d-flex session-prep-buttons">
             <a class="btn btn-primary" asp-controller="Home" asp-action="Index" asp-route-isForFirstSemester="@TempData["isForFirstSemester"]" title="Go back"><i class=" fa-solid fa-arrow-right"></i></a>
         </div>

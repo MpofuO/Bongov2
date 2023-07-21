@@ -27,7 +27,7 @@
                 <input type="hidden" asp-for="@moduleColor.Color" />
                 <h5>@moduleColor.ModuleCode</h5>
                 <div class="d-flex align-items-center">
-                    <select id="@moduleColor.ModuleCode-select" asp-for="@moduleColor.ColorId" name="ColorId" class="form-select w-25 colorSelect" asp-items="@ViewBag.Colors">
+                    <select id="@moduleColor.ModuleCode-select" asp-for="@moduleColor.ColorId" name="ColorId" class="form-select w-25  colorSelect" asp-items="@ViewBag.Colors">
                     </select>
                     <div class="ms-2 colorPreview" style="width:38px;height:38px;border-radius:4px;"></div>
                     @if (activeAction != "EditColors")
@@ -44,8 +44,9 @@
 
         }
         <div class="d-flex session-prep-buttons">
+            <a asp-controller="Session" asp-action="RandomColorEdit" asp-route-activeAction="@activeAction" class="btn btn-outline-primary" title="Random color select"><i class="fa-solid fa-bolt-lightning fa-beat-fade"></i></a>
             <button class="btn btn-outline-primary mx-3" type="submit" title="Save changes"><i class=" fa-solid fa-floppy-disk"></i></button>
-            <a asp-controller="Session" asp-action="Index" class="btn btn-primary mx-3" title="Go back"><i class=" fa-solid fa-arrow-left"></i></a>
+            <a asp-controller="Session" asp-action="Index" class="btn btn-primary ms-3" title="Go back"><i class=" fa-solid fa-arrow-left"></i></a>
         </div>
     </form>
 </div>

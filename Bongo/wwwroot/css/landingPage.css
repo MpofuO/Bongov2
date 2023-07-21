@@ -176,7 +176,7 @@ section {
 
 .about-section {
     background-color: white;
-    height: 500px;
+    height: 300px;
     margin-bottom: 0;
 }
 
@@ -199,11 +199,11 @@ footer {
     }
 
 
-@media only screen and (max-width: 350px) {
+@media only screen and (max-width: 650px) {
     .main-section img {
-        width: 200px;
-        height: 200px;
-        margin-left: 0px;
+        width: 200px !important;
+        height: 200px !important;
+        margin-left: 50px;
     }
 
     .testimonial {

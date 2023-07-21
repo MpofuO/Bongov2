@@ -5,7 +5,7 @@ namespace Bongo.Models.ViewModels
     public class IndexViewModel
     {
         public Session[,] Sessions { get; set; }
-        private int setLatest = 0;
+        private int setLatest;
         public int latestPeriod
         {
             get

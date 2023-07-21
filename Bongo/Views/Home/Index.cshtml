@@ -87,10 +87,11 @@
                             {
                                 continue;
                             }
-                            <td class="table-cell" id="@j">
+                            <td class="period-button period-add table-cell text-white" id="@j">
                                 <div class="delete-overlay">
                                     <a asp-action="AddSession" asp-controller="Session" asp-route-day="@Days[j]"
-                           asp-route-time="@hourtime" title="Add Session" class="btn" style="width: 100%; height:100%;">
+                                       asp-route-time="@hourtime" title="Add Session" class="delete-btn" style="width: 100%; height:100%;">
+                                        <i class="fa-solid fa-add"></i>
                                     </a>
                                 </div>
                             </td>

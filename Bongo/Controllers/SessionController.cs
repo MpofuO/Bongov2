@@ -169,14 +169,14 @@ namespace Bongo.Controllers
                     table.TimetableText = table.TimetableText.Replace(whole, "");
                 }
                 else
-                    table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), "");
+                    table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), "");
 
                 var moduleColor = _repository.ModuleColor.FindAll().FirstOrDefault(mc => mc.Username == User.Identity.Name && mc.ModuleCode == ModuleCode);
                 _repository.ModuleColor.Delete(moduleColor);
 
                 UpdateAndSave();
             }
-            return RedirectToAction("EditColors");
+            return RedirectToAction("ManageModules");
         }
         public IActionResult EditClashes(bool firstSemester, string session = "")
         {
@@ -411,6 +411,22 @@ namespace Bongo.Controllers
                 Colors = _repository.Color.FindAll()
             });
         }
+
+        [HttpGet]
+        public IActionResult RandomColorEdit(string activeAction)
+        {
+            var lstModuleColor = _repository.ModuleColor.GetByCondition(m => m.Username == User.Identity.Name).ToList();
+            int colorId = 1;
+            foreach (var moduleColor in lstModuleColor)
+            {
+                moduleColor.ColorId = colorId++;
+                _repository.ModuleColor.Update(moduleColor);
+                colorId = colorId > 14 ? 1 : colorId + 0;
+            }
+            _repository.SaveChanges();
+            return RedirectToAction(activeAction == "EditColors" ? "EditColors" : "ManageModules");
+        }
+
 
         [HttpPost]
         public IActionResult ClearTable()

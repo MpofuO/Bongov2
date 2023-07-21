@@ -33,6 +33,8 @@ namespace Bongo.Controllers
                 SetCookie("isVenueHidden", "false");
             }
 
+            
+
             bool isForFirstSemester = Request.Cookies["isForFirstSemester"] == "true";
 
 
@@ -52,18 +54,17 @@ namespace Bongo.Controllers
 
             ViewBag.isForFirstSemester = isForFirstSemester;
             TempData["isForFirstSemester"] = isForFirstSemester;
-            return View(new IndexViewModel
+            IndexViewModel indexViewModel = new IndexViewModel
             {
                 Sessions = data is not null ? data : new Session[5, 16],
                 latestPeriod = latestPeriod
-            });
+            };
+            SetCookie("latestPeriod", indexViewModel.latestPeriod.ToString());
+            return View(indexViewModel);
         }
         public ActionResult GeneratePdf()
         {
-            CookieOptions cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(12) };
-
-            Response.Cookies.Append("isVenueHidden", "false", cookieOptions);
-
+            int latestPeriod = int.Parse(Request.Cookies["latestPeriod"]);
             #region For Control
             List<List<Session>> ClashesList;
             List<Lecture> GroupedList;
@@ -85,11 +86,12 @@ namespace Bongo.Controllers
 
                 PdfGraphics graphics = page.Graphics;
 
-                RectangleF bounds = new RectangleF(0, 0, document.Pages[0].GetClientSize().Width, 50);
-                PdfPageTemplateElement header = new PdfPageTemplateElement(bounds);
+                RectangleF bounds = new RectangleF(0, 0, document.Pages[0].GetClientSize().Width, 90);
+
+                /*PdfPageTemplateElement header = new PdfPageTemplateElement(bounds);
                 header.Graphics.DrawString("B o n g o", new PdfStandardFont(PdfFontFamily.Helvetica, 22, PdfFontStyle.Bold), PdfBrushes.Blue, bounds);
 
-                document.Template.Top = header;
+                document.Template.Top = header;*/
 
                 PdfLayoutFormat format = new PdfLayoutFormat()
                 {
@@ -110,12 +112,8 @@ namespace Bongo.Controllers
 
                 PdfGridCellStyle pdfGridCellStyle = new PdfGridCellStyle()
                 {
-                    Font = new PdfStandardFont(PdfFontFamily.Helvetica, 8, PdfFontStyle.Regular),
-                    CellPadding = new PdfPaddings(2f, 2f, 2f, 2f),
-
+                    Font = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Regular)
                 };
-
-
 
                 //Headers 
                 PdfGridRow pdfGridHeader = pdfGrid.Headers[0];
@@ -126,28 +124,33 @@ namespace Bongo.Controllers
                 pdfGridHeader.Cells[4].Value = "Thursday";
                 pdfGridHeader.Cells[5].Value = "Friday";
 
+                for (int i = 1; i < pdfGridHeader.Cells.Count; i++)
+                {
+                    pdfGridHeader.Cells[i].StringFormat = pdfStringFormat;
+                }
+
                 PdfFont headerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
 
-                pdfGridHeader.Style = new PdfGridRowStyle { Font = headerFont };
+                pdfGridHeader.Style = new PdfGridRowStyle { Font = headerFont, TextBrush = PdfBrushes.Blue, BackgroundBrush = new PdfSolidBrush(new PdfColor(ColorTranslator.FromHtml("#dee2e6"))) };
 
                 //Rows
 
                 pdfGrid.Columns[0].Width = 40f;
                 //Handle Rowspan 
                 List<List<int>> lstCells = new List<List<int>>();
-                for (int i = 0; i < 14; i++)
+                for (int i = 0; i < latestPeriod; i++)
                 {
                     lstCells.Add(new List<int>());
                 }
 
                 // Add table rows
-                for (int i = 0; i < 14; i++)
+                for (int i = 0; i < latestPeriod; i++)
                 {
 
                     PdfGridRow pdfGridRow = pdfGrid.Rows.Add();
                     pdfGridRow.Cells[0].Value = GetTime(i);
-                    pdfGridRow.Cells[0].Style = new PdfGridCellStyle { Font = headerFont };
-                    pdfGridRow.Height = 40f;
+                    pdfGridRow.Cells[0].Style = new PdfGridCellStyle { Font = headerFont, TextBrush = PdfBrushes.Blue, BackgroundBrush = new PdfSolidBrush(new PdfColor(ColorTranslator.FromHtml("#dee2e6"))) };
+                    pdfGridRow.Height = 50f;
                     for (int j = 0; j < 5; j++)
                     {
 
@@ -168,12 +171,51 @@ namespace Bongo.Controllers
                                 continue;
                             }
 
-                            pdfGridRow.Cells[j + 1].Value = $"{String.Format(session.ModuleCode.ToUpper())}\n{session.Venue}";
-                            pdfGridRow.Cells[j + 1].RowSpan = row;
-                            pdfGridRow.Cells[j + 1].Style = pdfGridCellStyle;
+                            PdfGrid nestedGrid = new PdfGrid();
+                            nestedGrid.Columns.Add();
+
+                            PdfGridRow nestedRow1 = nestedGrid.Rows.Add();
+                            nestedRow1.Cells[0].Value = session.ModuleCode;
+
                             var c = _repo.ModuleColor.GetModuleColorWithColorDetails(User.Identity.Name, session.ModuleCode).Color.ColorValue;
+
+                            if (Request.Cookies["isVenueHidden"] == "false")
+                            {
+                                PdfGridRow nestedRow2 = nestedGrid.Rows.Add();
+                                nestedRow2.Cells[0].Value = session.Venue;
+                                PdfGridCellStyle contentStyle = new PdfGridCellStyle();
+                                contentStyle.Borders.All = PdfPens.Transparent;
+                                contentStyle.CellPadding = new PdfPaddings(0, 0, 0, 5f);
+                                contentStyle.TextBrush = new PdfSolidBrush(c == "#FFFFFF" ? new PdfColor(0, 0, 0) : new PdfColor(255, 255, 255));
+                                contentStyle.StringFormat = new PdfStringFormat { Alignment = PdfTextAlignment.Center, LineAlignment = PdfVerticalAlignment.Top };
+                                nestedRow2.Cells[0].Style = contentStyle;
+                                nestedRow1.Height = (float)((50 * row) * (row > 1 ? 0.5 : 0.4));
+                                nestedRow2.Height = (float)((50 * row) * (row > 1 ? 0.5 : 0.6));
+                                nestedRow1.Cells[0].StringFormat = new PdfStringFormat { Alignment = PdfTextAlignment.Center, LineAlignment = PdfVerticalAlignment.Bottom };
+                            }
+                            else
+                            {
+                                nestedRow1.Cells[0].StringFormat = new PdfStringFormat { LineAlignment = PdfVerticalAlignment.Middle, Alignment = PdfTextAlignment.Center };
+                                nestedRow1.Height = 50 * row;
+                            }
+
+                            PdfGridCellStyle headerStyle = new PdfGridCellStyle();
+                            headerStyle.Font = headerFont;
+                            headerStyle.StringFormat = pdfStringFormat;
+
+                            nestedRow1.Cells[0].Style = new PdfGridCellStyle { Font = headerFont, Borders = new PdfBorders { All = PdfPens.Transparent }, TextBrush = new PdfSolidBrush(c == "#FFFFFF" ? new PdfColor(0, 0, 0) : new PdfColor(255, 255, 255)) };
+
+                            pdfGridRow.Cells[j + 1].Value = nestedGrid;
+                            pdfGridRow.Cells[j + 1].RowSpan = row;
+
+
+
+
                             Syncfusion.Drawing.Color color = ColorTranslator.FromHtml(c);
-                            pdfGridRow.Cells[j + 1].Style = new PdfGridCellStyle { BackgroundBrush = new PdfSolidBrush(new PdfColor(color)), TextBrush = new PdfSolidBrush(new PdfColor(255, 255, 255)) };
+
+                            var fontColor = c == "#FFFFFF" ? new PdfColor(0, 0, 0) : new PdfColor(255, 255, 255);
+
+                            pdfGridRow.Cells[j + 1].Style = new PdfGridCellStyle { BackgroundBrush = new PdfSolidBrush(new PdfColor(color)) };
                         }
                         else
                         {
@@ -187,20 +229,19 @@ namespace Bongo.Controllers
 
                 }
 
+                pdfGrid.Columns[0].Format = pdfStringFormat;
                 for (int x = 1; x < pdfGrid.Columns.Count; x++)
                 {
-                    pdfGrid.Columns[x - 1].Format = pdfStringFormat;
                     pdfGrid.Columns[x].Width = 90f;
                 }
-                pdfGrid.Columns[pdfGrid.Columns.Count - 1].Format = pdfStringFormat;
 
 
 
-                pdfGrid.Draw(page, new RectangleF(0, 50, page.GetClientSize().Width, page.GetClientSize().Height), format);
+                pdfGrid.Draw(page, new RectangleF(0, 0, page.GetClientSize().Width, page.GetClientSize().Height), format);
 
                 PdfPageTemplateElement footer = new PdfPageTemplateElement(bounds);
 
-                footer.Graphics.DrawString("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tBongo v1 | \u00A9 " + DateTime.Now.Year,
+                footer.Graphics.DrawString("\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tBongo v1 | \u00A9 " + DateTime.Now.Year,
                     new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.LightGray, bounds);
 
                 document.Template.Bottom = footer;
