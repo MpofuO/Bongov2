@@ -3,9 +3,13 @@
 <div class="session-prep bg-light shadow w-sm-50">
     <form asp-action="TimeTableFileUpload" method="post" enctype="multipart/form-data">
         <div class="text-danger" asp-validation-summary="ModelOnly"></div>
-        <div class="mb-5">
+        <div class="mb-1">
             <h4 for="file">Upload your UFS Personal Timetable to continue</h4>
             <input class="form-control mt-3 ms-3" type="file" name="file" accept=".pdf" />
+        </div>
+        <div class="mb-5">
+            <input class=" form-check-input" type="checkbox" name="startBlank" value="..."/>
+            <label class="form-check-label">Continue without uploading (start on your own)</label>
         </div>
         <div class="mb-3">
             <h4>Choose semester</h4>
@@ -22,10 +26,7 @@
             <i class="fa-solid fa-info-circle fa-1x me-1 text-primary"></i><span>Help</span>
         </a>
         <div class="d-flex session-prep-buttons">
-            <button class="btn btn-primary mx-3" type="submit" title="Continue">Submit <i class=" fa-solid fa-arrow-right"></i></button>
-            <P class="my-auto"><strong>OR</strong></P>
-            <button asp-action="StartBlank" asp-controller="Session" type="submit" class="btn btn-outline-primary mx-3" 
-            formmethod="post" title="Build on your own">Start without upload</></button>
+            <button class="btn btn-primary mx-3" type="submit" title="Continue"><i class=" fa-solid fa-arrow-right"></i></button>
         </div>
         
     </form>

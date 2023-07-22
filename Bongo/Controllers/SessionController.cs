@@ -202,7 +202,7 @@ namespace Bongo.Controllers
         }
 
         [HttpPost]
-        public IActionResult TimeTableFileUpload(IFormFile file, bool isFirstSemester = true)
+        public IActionResult TimeTableFileUpload(IFormFile file, string[] startBlank, bool isFirstSemester = true)
         {
             if (file != null)
             {
@@ -254,8 +254,8 @@ namespace Bongo.Controllers
                             return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
                         }
                         else
-                            ModelState.AddModelError("", "Something went wrong while uploading TimeTable. " +
-                                "\n Please make sure your have uploaded your personal TimeTable");
+                            ModelState.AddModelError("", "Something went wrong while uploading timetable. " +
+                                "\n Please make sure your have uploaded your personal timetable");
                     }
                     else
                         ModelState.AddModelError("", "Only pdf files allowed");
@@ -264,13 +264,16 @@ namespace Bongo.Controllers
                     ModelState.AddModelError("", "Chosen file is too large");
             }
             else
-                ModelState.AddModelError("", "No file was uploaded");
+            {
+                if (startBlank.Count() != 0)
+                    return StartBlank();
+                else
+                    ModelState.AddModelError("", "No file was uploaded. Please upload file or select to continue without uploading.");
+            }
 
             return View();
         }
-
-        [HttpPost]
-        public IActionResult StartBlank()
+        private IActionResult StartBlank()
         {
             Timetable newTimetale = new Timetable { TimetableText = "", Username = User.Identity.Name };
             _repository.Timetable.Update(newTimetale);
@@ -508,7 +511,8 @@ namespace Bongo.Controllers
         }
         private void AddNewSession(AddSessionViewModel model)
         {
-            int moduleIndex = table.TimetableText.IndexOf(model.ModuleCode.ToUpper());
+            string moduleCode = model.ModuleCode.ToUpper();
+            int moduleIndex = table.TimetableText.IndexOf(moduleCode);
             if (moduleIndex != -1)
             {
                 int sessionTypeIndex = moduleIndex + table.TimetableText.Substring(moduleIndex).IndexOf($"{model.SessionType} {model.SessionNumber}");
@@ -525,27 +529,27 @@ namespace Bongo.Controllers
                     }
                     else
                     {
-                        table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{model.ModuleCode.ToUpper()}\n" +
+                        table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{moduleCode}\n" +
                         $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
                         table.TimetableText.Substring(moduleIndex + 8) + "\n");
                     }
                 }
                 else
                 {
-                    table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{model.ModuleCode.ToUpper()}\n" +
+                    table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(moduleIndex), $"{moduleCode}\n" +
                         $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
                         table.TimetableText.Substring(moduleIndex + 8) + "\n");
                 }
             }
             else
             {
-                table.TimetableText = $"{table.TimetableText}{model.ModuleCode.ToUpper()}" +
+                table.TimetableText = $"{table.TimetableText}{moduleCode}" +
                     $"\n{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n";
                 _repository.ModuleColor.Create(new ModuleColor
                 {
                     ColorId = _repository.Color.GetByName("no-color").ColorId,
                     Username = User.Identity.Name,
-                    ModuleCode = model.ModuleCode
+                    ModuleCode = moduleCode
 
                 });
             }
