@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Remove="UV_CLS_TT_SS E.pdf" />
     <None Remove="UV_CLS_TT_SS.pdf" />
+    <None Remove="Views\Session\AddSession.cshtml~RF5cbd12d.TMP" />
   </ItemGroup>
 
   <ItemGroup>

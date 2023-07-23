@@ -340,7 +340,7 @@ namespace Bongo.Controllers
         [HttpGet]
         public IActionResult AddSession(string day, string time)
         {
-            PopulateEndTimeDLL(time);
+            PopulateEndTimeDLL(time, getAvailablePeriodCount(time, day));
             return View(new AddSessionViewModel { Day = day, startTime = time });
         }
 
@@ -354,7 +354,7 @@ namespace Bongo.Controllers
                 return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
             }
 
-            PopulateEndTimeDLL(model.startTime);
+            PopulateEndTimeDLL(model.startTime, getAvailablePeriodCount(model.startTime, model.Day));
             return View(model);
         }
 
@@ -405,7 +405,14 @@ namespace Bongo.Controllers
                     moduleColor.Color = color;
                     _repository.ModuleColor.Update(moduleColor);
                 }
-                _repository.SaveChanges();
+                if (model.ColorId.Count() == 1)
+                {
+                    Regex timePattern = new Regex(@"(\d{2}:\d{2}) (\d{2}:\d{2})");
+                    string newSessionInPDFValue = model.oldSessionInPDFValue.Replace(model.oldSessionInPDFValue.
+                        Substring(0, timePattern.Match(model.oldSessionInPDFValue).Index), $"{model.Venue[0]} ");
+                    table.TimetableText = table.TimetableText.Replace(model.oldSessionInPDFValue, newSessionInPDFValue);
+                }
+                UpdateAndSave();
                 TempData["Message"] = "Colors changed successfuly💃🏿";
             }
             return RedirectToAction("Index");
@@ -439,7 +446,6 @@ namespace Bongo.Controllers
             return RedirectToAction(activeAction == "EditColors" ? "EditColors" : "ManageModules");
         }
 
-
         [HttpPost]
         public IActionResult ClearTable()
         {
@@ -460,17 +466,41 @@ namespace Bongo.Controllers
             _repository.SaveChanges();
             return RedirectToAction("TimeTableFileUpload");
         }
-        private void PopulateEndTimeDLL(string startTime)
+        private void PopulateEndTimeDLL(string startTime, int periodCount)
         {
             List<SelectListItem> endTimes = new List<SelectListItem>();
             int start = int.Parse(startTime.Substring(0, 2)) + 1;
-            while (start <= 22)
+            for (int i = 0; i <= periodCount; i++)
             {
                 string value = start < 10 ? $"0{start}:00" : $"{start}:00";
                 endTimes.Add(new SelectListItem { Value = value, Text = value });
                 start++;
             }
             ViewBag.endTimes = endTimes;
+        }
+        private int getAvailablePeriodCount(string startTime, string Day)
+        {
+            int day = 0;
+
+            switch (Day)
+            {
+                case "Monday": day = 0; break;
+                case "Tuesday": day = 1; break;
+                case "Wednesday": day = 2; break;
+                case "Thursday": day = 3; break;
+                case "Friday": day = 4; break;
+            }
+
+            Initialise(Request.Cookies["isForFirstSemester"] == "true");
+            int period = int.Parse(startTime.Substring(0, 2)) - 6;
+            int count = 0;
+            while (period < 16 && data[day, period] is null)
+            {
+                count++;
+                period++;
+            }
+
+            return count;
         }
         private void PopulateColorDLL(object selectedColor = null)
         {

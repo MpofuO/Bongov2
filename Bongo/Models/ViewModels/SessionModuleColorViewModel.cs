@@ -10,5 +10,7 @@
     {
         public int[] ModuleColorId { get; set; }
         public int[] ColorId { get; set; }
+        public string oldSessionInPDFValue { get; set; }
+        public string Venue { get; set; }
     }
 }
