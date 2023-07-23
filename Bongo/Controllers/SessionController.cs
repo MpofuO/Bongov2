@@ -409,7 +409,7 @@ namespace Bongo.Controllers
                 {
                     Regex timePattern = new Regex(@"(\d{2}:\d{2}) (\d{2}:\d{2})");
                     string newSessionInPDFValue = model.oldSessionInPDFValue.Replace(model.oldSessionInPDFValue.
-                        Substring(0, timePattern.Match(model.oldSessionInPDFValue).Index), $"{model.Venue[0]} ");
+                        Substring(0, timePattern.Match(model.oldSessionInPDFValue).Index), $"{model.Venue} ");
                     table.TimetableText = table.TimetableText.Replace(model.oldSessionInPDFValue, newSessionInPDFValue);
                 }
                 UpdateAndSave();

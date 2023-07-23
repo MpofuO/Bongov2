@@ -19,18 +19,18 @@
 }
 <div class="session-prep bg-light shadow w-sm-50">
     <h4 class="my-3">@Model.Session.ModuleCode</h4>
-    <div class="mb-3">
-        <h5 class="details-Head">Type</h5><span>@Model.Session.sessionType</span>
-    </div>
-    <div class="mb-3">
-        <h5 class="details-Head">Venue</h5>
-        <input class="form-control" asp-for="Session.Venue" style="width:40%;" value="@Model.Session.Venue" name="Venue" />
-    </div>
-    <div class="mb-3">
-        <h5 class="details-Head">Time</h5><span>@day, @time</span>
-    </div>
-    <div class="mb-3">
-        <form asp-controller="Session" asp-action="UpdateModuleColor" method="post">
+    <form asp-controller="Session" asp-action="UpdateModuleColor" method="post">
+        <div class="mb-3">
+            <h5 class="details-Head">Type</h5><span>@Model.Session.sessionType</span>
+        </div>
+        <div class="mb-3">
+            <h5 class="details-Head">Venue</h5>
+            <input class="form-control" asp-for="Session.Venue" style="width:40%;" name="Venue" />
+        </div>
+        <div class="mb-3">
+            <h5 class="details-Head">Time</h5><span>@day, @time</span>
+        </div>
+        <div class="mb-3">
             <input type="hidden" asp-for="ModuleColor.Username" />
 
             <input type="hidden" asp-for="ModuleColor.ModuleCode" />
@@ -55,8 +55,8 @@
                 </button>
                 <a asp-controller="Home" asp-action="Index" class="btn btn-primary mx-3" title="Go back"><i class=" fa-solid fa-arrow-left"></i></a>
             </div>
-        </form>
-    </div>
+    </form>
+</div>
 </div>
 
 <script>
