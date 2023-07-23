@@ -341,7 +341,7 @@ namespace Bongo.Controllers
         public IActionResult AddSession(string day, string time, string moduleCode = "", string Venue = "")
         {
             PopulateEndTimeDLL(time, getAvailablePeriodCount(time, day));
-            return View(new AddSessionViewModel { ModuleCode=moduleCode, Venue = Venue, Day = day, startTime = time });
+            return View(new AddSessionViewModel { ModuleCode = moduleCode, Venue = Venue, Day = day, startTime = time });
         }
 
         [HttpPost]
@@ -578,13 +578,13 @@ namespace Bongo.Controllers
 
                             if (breakMatch.Success)
                             {
-                                string oldSessionText = table.TimetableText.Substring(sessionTypeIndex, breakMatch.Index - $"{model.SessionType} {model.SessionNumber}".Length);
-                                string newText = newSessionText + oldSessionText.Replace("selectedGroup", "");
+                                string oldSessionText = table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType} {model.SessionNumber}".Length, breakMatch.Index);
+                                string newText = newSessionText.Replace($"{model.SessionType} {model.SessionNumber}", "") + oldSessionText.Replace("selectedGroup", "");
                                 table.TimetableText = table.TimetableText.Replace(oldSessionText, newText);
                             }
-
-                            table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(sessionTypeIndex),
-                                $"{newSessionText}\n{table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType + model.SessionNumber}".Length + 1)}\n");
+                            else
+                                table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(sessionTypeIndex),
+                                    $"{newSessionText}\n{table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType + model.SessionNumber}".Length + 1)}\n");
                         }
                         else
                             return View("ConfirmGroup", model);
