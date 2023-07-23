@@ -338,10 +338,10 @@ namespace Bongo.Controllers
         }
 
         [HttpGet]
-        public IActionResult AddSession(string day, string time)
+        public IActionResult AddSession(string day, string time, string moduleCode = "", string Venue = "")
         {
             PopulateEndTimeDLL(time, getAvailablePeriodCount(time, day));
-            return View(new AddSessionViewModel { Day = day, startTime = time });
+            return View(new AddSessionViewModel { ModuleCode=moduleCode, Venue = Venue, Day = day, startTime = time });
         }
 
         [HttpPost]
@@ -349,13 +349,29 @@ namespace Bongo.Controllers
         {
             if (ModelState.IsValid)
             {
-                AddNewSession(model);
+                IActionResult result = AddNewSession(model);
+                if (result != default)
+                    return result;
                 UpdateAndSave();
                 return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
             }
 
             PopulateEndTimeDLL(model.startTime, getAvailablePeriodCount(model.startTime, model.Day));
             return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ConfirmGroup(AddSessionViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AddNewSession(model, true);
+                UpdateAndSave();
+                return RedirectToAction("Index", new { isForFirstSemester = Request.Cookies["isForFirstSemester"] });
+            }
+
+            PopulateEndTimeDLL(model.startTime, getAvailablePeriodCount(model.startTime, model.Day));
+            return View("AddSession", model);
         }
 
         [HttpGet]
@@ -539,7 +555,7 @@ namespace Bongo.Controllers
                             table.TimetableText = table.TimetableText.Replace(s.sessionInPDFValue, s.sessionInPDFValue.Replace("ignored", ""));
             }
         }
-        private void AddNewSession(AddSessionViewModel model)
+        private IActionResult AddNewSession(AddSessionViewModel model, bool groupConfirmed = false)
         {
             string moduleCode = model.ModuleCode.ToUpper();
             int moduleIndex = table.TimetableText.IndexOf(moduleCode);
@@ -548,14 +564,30 @@ namespace Bongo.Controllers
                 int sessionTypeIndex = moduleIndex + table.TimetableText.Substring(moduleIndex).IndexOf($"{model.SessionType} {model.SessionNumber}");
                 if (sessionTypeIndex != moduleIndex - 1)
                 {
-                    string text = table.TimetableText.Substring(moduleIndex, sessionTypeIndex - moduleIndex);
+                    string text = table.TimetableText.Substring(moduleIndex + 8, sessionTypeIndex - moduleIndex);
                     Regex modulepattern = new Regex(@"[A-Z]{4}[\d]{4}|CLASH!![\d]");
                     Match match = modulepattern.Match(text);
                     if (!match.Success)
                     {
-                        table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(sessionTypeIndex),
-                            $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}\n" +
-                            table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType + model.SessionNumber}".Length + 1) + "\n");
+                        if (groupConfirmed)
+                        {
+                            int index = sessionTypeIndex + $"{model.SessionType} {model.SessionNumber}".Length;
+                            string newSessionText = $"{model.SessionType} {model.SessionNumber}\n{model.Venue} {model.startTime} {model.endTime} {model.Day}selectedGroup";
+                            Regex breakPoint = new Regex(@"[A-Z]{4}[\d]{4}|Lecture [0-9]?|Tutorial [0-9]?|Practical [0-9]?");
+                            Match breakMatch = breakPoint.Match(table.TimetableText.Substring(index));
+
+                            if (breakMatch.Success)
+                            {
+                                string oldSessionText = table.TimetableText.Substring(sessionTypeIndex, breakMatch.Index - $"{model.SessionType} {model.SessionNumber}".Length);
+                                string newText = newSessionText + oldSessionText.Replace("selectedGroup", "");
+                                table.TimetableText = table.TimetableText.Replace(oldSessionText, newText);
+                            }
+
+                            table.TimetableText = table.TimetableText.Replace(table.TimetableText.Substring(sessionTypeIndex),
+                                $"{newSessionText}\n{table.TimetableText.Substring(sessionTypeIndex + $"{model.SessionType + model.SessionNumber}".Length + 1)}\n");
+                        }
+                        else
+                            return View("ConfirmGroup", model);
                     }
                     else
                     {
@@ -583,6 +615,7 @@ namespace Bongo.Controllers
 
                 });
             }
+            return default;
         }
         private void UpdateAndSave()
         {
