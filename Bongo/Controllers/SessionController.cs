@@ -359,7 +359,7 @@ namespace Bongo.Controllers
         }
 
         [HttpGet]
-        public IActionResult SessionDetails(string session/*, bool forFirstSemester*/)
+        public IActionResult SessionDetails(string session)
         {
             if (session != null)
             {
@@ -405,7 +405,7 @@ namespace Bongo.Controllers
                     moduleColor.Color = color;
                     _repository.ModuleColor.Update(moduleColor);
                 }
-                if (model.ColorId.Count() == 1)
+                if (model.ColorId.Count() == 1 && model.View == "Details")
                 {
                     Regex timePattern = new Regex(@"(\d{2}:\d{2}) (\d{2}:\d{2})");
                     string newSessionInPDFValue = model.oldSessionInPDFValue.Replace(model.oldSessionInPDFValue.

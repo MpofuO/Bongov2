@@ -12,5 +12,6 @@
         public int[] ColorId { get; set; }
         public string oldSessionInPDFValue { get; set; }
         public string Venue { get; set; }
+        public string View { get; set; }
     }
 }
